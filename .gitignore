@@ -1,0 +1,44 @@
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# FAISS index files
+*.faiss
+*.corpus.json
+
+# Output / results
+results/
+*.png
+*.pdf
+
+# macOS
+.DS_Store
+
+# Environment
+.env
+*.env
+
+# Notebooks (keep .ipynb but ignore checkpoints)
+.ipynb_checkpoints/
+
+# pytest
+.pytest_cache/
+htmlcov/
+.coverage

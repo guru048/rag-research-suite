@@ -75,12 +75,21 @@ class TextToSQLAgent:
         self.db_path = db_path
         self.max_retries = max_retries
         self._schema_cache: Optional[str] = None
+        # For :memory: DBs, keep a single persistent connection so seed data
+        # is visible to all subsequent queries (each sqlite3.connect(":memory:")
+        # opens a fresh empty database).
+        self._persistent_conn: Optional[sqlite3.Connection] = None
+        if db_path == ":memory:":
+            self._persistent_conn = sqlite3.connect(":memory:", check_same_thread=False)
+            self._persistent_conn.row_factory = sqlite3.Row
 
     # ------------------------------------------------------------------ #
     # Schema introspection                                                 #
     # ------------------------------------------------------------------ #
 
     def _get_connection(self) -> sqlite3.Connection:
+        if self._persistent_conn is not None:
+            return self._persistent_conn
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         return conn
@@ -107,7 +116,8 @@ class TextToSQLAgent:
                     parts.append(f"Table: {table} ({cols})")
             self._schema_cache = "\n\n".join(parts)
         finally:
-            conn.close()
+            if self._persistent_conn is None:
+                conn.close()
         return self._schema_cache
 
     # ------------------------------------------------------------------ #
@@ -175,7 +185,8 @@ class TextToSQLAgent:
             conn.commit()
             self._schema_cache = None  # invalidate cache after seeding
         finally:
-            conn.close()
+            if self._persistent_conn is None:
+                conn.close()
 
     # ------------------------------------------------------------------ #
     # SQL generation + execution                                          #
@@ -197,7 +208,8 @@ class TextToSQLAgent:
         except Exception as e:
             return [], str(e)
         finally:
-            conn.close()
+            if self._persistent_conn is None:
+                conn.close()
 
     def query(self, question: str) -> Dict:
         """

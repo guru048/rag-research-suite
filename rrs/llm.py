@@ -26,7 +26,7 @@ class MockLLM:
         prompt_lower = prompt.lower()
 
         # SQL generation
-        if "select" in prompt_lower and ("sql" in prompt_lower or "query" in prompt_lower):
+        if ("sql" in prompt_lower or "query" in prompt_lower) and any(k in prompt_lower for k in ("count", "select", "table", "show", "list", "how many", "average", "total", "which")):
             if "count" in prompt_lower:
                 return "SELECT COUNT(*) FROM documents;"
             if "where" in prompt_lower or "filter" in prompt_lower:
